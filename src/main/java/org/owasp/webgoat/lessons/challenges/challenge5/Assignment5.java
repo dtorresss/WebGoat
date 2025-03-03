@@ -24,6 +24,8 @@ package org.owasp.webgoat.lessons.challenges.challenge5;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.SQLException;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.owasp.webgoat.container.LessonDataSource;
@@ -46,7 +48,7 @@ public class Assignment5 extends AssignmentEndpoint {
 
   @PostMapping("/challenge/5")
   @ResponseBody
-  public AttackResult login(@RequestParam String usernameLogin, @RequestParam String passwordLogin) throws Exception {
+  public AttackResult login(@RequestParam String usernameLogin, @RequestParam String passwordLogin) throws SQLException {
     if (!StringUtils.hasText(usernameLogin) || !StringUtils.hasText(passwordLogin)) {
       return failed(this).feedback("required4").build();
     }
