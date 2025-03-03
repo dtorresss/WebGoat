@@ -24,6 +24,8 @@ package org.owasp.webgoat.lessons.challenges.challenge5;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.SQLException;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.owasp.webgoat.container.LessonDataSource;
@@ -46,28 +48,26 @@ public class Assignment5 extends AssignmentEndpoint {
 
   @PostMapping("/challenge/5")
   @ResponseBody
-  public AttackResult login(
-      @RequestParam String username_login, @RequestParam String password_login) throws Exception {
-    if (!StringUtils.hasText(username_login) || !StringUtils.hasText(password_login)) {
+  public AttackResult login(@RequestParam String usernameLogin, @RequestParam String passwordLogin) throws SQLException {
+    if (!StringUtils.hasText(usernameLogin) || !StringUtils.hasText(passwordLogin)) {
       return failed(this).feedback("required4").build();
     }
-    if (!"Larry".equals(username_login)) {
-      return failed(this).feedback("user.not.larry").feedbackArgs(username_login).build();
+    if (!"Larry".equals(usernameLogin)) {
+      return failed(this).feedback("user.not.larry").feedbackArgs(usernameLogin).build();
     }
     try (var connection = dataSource.getConnection()) {
-      PreparedStatement statement =
-          connection.prepareStatement(
-              "select password from challenge_users where userid = '"
-                  + username_login
-                  + "' and password = '"
-                  + password_login
-                  + "'");
-      ResultSet resultSet = statement.executeQuery();
+        String query = "select password from challenge_users where userid = ? and password = ?";
+      try(PreparedStatement statement = connection.prepareStatement(query)) {
+          statement.setString(1, usernameLogin);
+          statement.setString(2, passwordLogin);
 
-      if (resultSet.next()) {
-        return success(this).feedback("challenge.solved").feedbackArgs(flags.getFlag(5)).build();
-      } else {
-        return failed(this).feedback("challenge.close").build();
+          ResultSet resultSet = statement.executeQuery();
+
+          if (resultSet.next()) {
+              return success(this).feedback("challenge.solved").feedbackArgs(flags.getFlag(5)).build();
+          } else {
+              return failed(this).feedback("challenge.close").build();
+          }
       }
     }
   }
